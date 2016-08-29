@@ -82,7 +82,7 @@ RememberMeSkill.prototype.intentHandlers = {
     "WordRecognitionIntent": function (intent, session, response) {
     	handleUserInputForWordRecognition(intent, session, response);
     },
-
+	
     "AMAZON.HelpIntent": function (intent, session, response) {
         var speechText = "";
 
@@ -121,6 +121,31 @@ RememberMeSkill.prototype.intentHandlers = {
 
     "AMAZON.CancelIntent": function (intent, session, response) {
         var speechOutput = "Goodbye";
+        response.tell(speechOutput);
+    },
+	"AMAZON.YesIntent": function (intent, session, response) {
+        var speechOutput = "Okay, please continue";
+        response.ask(speechOutput);
+    },
+
+    "AMAZON.NoIntent": function (intent, session, response) {
+		var speechText = "";
+		var originalLength = session.attributes.list.length;
+		var utteredLength = session.attributes.utteredList.length;
+		var remainingLength = session.attributes.remainingList.length;
+        if(originalLength === utteredLength){
+			speechText = "Congrats! You have correctly remembered all the words"
+		} else {
+			if(remainingLength > 0){
+				speechText = "Sorry, you have missed "+remainingLength+" words" + "<break time=\"1s\"/>";
+				speechText = speechText + "These are the words you missed";
+				for(var i=0; i<remainingLength.length; i++) {
+					speechText = speechText + session.attributes.remainingList[i] + "<break time=\"1s\"/>";
+				}
+				
+			}
+		}
+		speechText = speechText + "Thank you for playing Remember Me!";
         response.tell(speechOutput);
     }
 };
@@ -168,6 +193,8 @@ function handleUserInputForNumberOfWords(intent, session, response) {
                		session.attributes.stage = 1;
 			// Store the words as part of session
 			session.attributes.list = list;
+			session.attributes.remainingList = list;
+			session.attributes.utteredList = [];
         	} else {
                 speechText = "Please say a valid number between one and ten";
         	}
@@ -192,120 +219,126 @@ function handleUserInputForNumberOfWords(intent, session, response) {
 }
 
 function handleUserInputForWordRecognition(intent, session, response) {
-    var speechText = "So you said these words right: ";
+    var speechText = "";
         //Ensure the dialogue is on the correct stage.
         if (session.attributes.stage === 1) {
            	//The user is trying to say the words
 		// First get the list of words the user is supposed to say
-		var expectedList = session.attributes.list;
+		var remainingList = session.attributes.remainingList;
+		var utteredList = session.attributes.utteredList;
 		var unExpectedList = [];
 		if(intent.slots.word_one.value !== undefined) {
-			speechText = speechText + intent.slots.word_one.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_one.value);
+			var index = remainingList.indexOf(intent.slots.word_one.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_one.value);
 			} else {
 				unExpectedList.push(intent.slots.word_one.value);
 			}
 		}
 		if(intent.slots.word_two.value !== undefined) {
-			speechText = speechText + intent.slots.word_two.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_two.value);
+			var index = remainingList.indexOf(intent.slots.word_two.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_two.value);
 			} else {
 				unExpectedList.push(intent.slots.word_two.value);
 			}
 		}
 		if(intent.slots.word_three.value !== undefined) {
-			speechText = speechText + intent.slots.word_three.value + "<break time=\"1s\"/>";	
-			var index = expectedList.indexOf(intent.slots.word_three.value);
+			var index = remainingList.indexOf(intent.slots.word_three.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_three.value);
 			} else {
 				unExpectedList.push(intent.slots.word_three.value);
 			}
 		}
 		if(intent.slots.word_four.value !== undefined) {
-			speechText = speechText + intent.slots.word_four.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_four.value);
+			var index = remainingList.indexOf(intent.slots.word_four.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_four.value);
 			} else {
 				unExpectedList.push(intent.slots.word_four.value);
 			}	
 		}
 		if(intent.slots.word_five.value !== undefined) {
-			speechText = speechText + intent.slots.word_five.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_five.value);
+			var index = remainingList.indexOf(intent.slots.word_five.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_five.value);
 			} else {
 				unExpectedList.push(intent.slots.word_five.value);
 			}	
 		}
 		if(intent.slots.word_six.value !== undefined) {
-			speechText = speechText + intent.slots.word_six.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_six.value);
+			var index = remainingList.indexOf(intent.slots.word_six.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_six.value);
 			} else {
 				unExpectedList.push(intent.slots.word_six.value);
 			}	
 		}
 		if(intent.slots.word_seven.value !== undefined) {
 			speechText = speechText + intent.slots.word_seven.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_seven.value);
+			var index = remainingList.indexOf(intent.slots.word_seven.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_seven.value);
 			} else {
 				unExpectedList.push(intent.slots.word_seven.value);
 			}	
 		}
 		if(intent.slots.word_eight.value !== undefined) {
-			speechText = speechText + intent.slots.word_eight.value + "<break time=\"1s\"/>";
 			var index = expectedList.indexOf(intent.slots.word_eight.value);
 			if(index >= 0){
 				// Delete from the expected list
 				expectedList.splice(index,1);
+				utteredList.push(intent.slots.word_eight.value);
 			} else {
 				unExpectedList.push(intent.slots.word_eight.value);
 			}	
 		}
 		if(intent.slots.word_nine.value !== undefined) {
-			speechText = speechText + intent.slots.word_nine.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_nine.value);
+			var index = remainingList.indexOf(intent.slots.word_nine.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_nine.value);
 			} else {
 				unExpectedList.push(intent.slots.word_nine.value);
 			}	
 		}
 		if(intent.slots.word_ten.value !== undefined) {
-			speechText = speechText + intent.slots.word_ten.value + "<break time=\"1s\"/>";
-			var index = expectedList.indexOf(intent.slots.word_ten.value);
+			var index = remainingList.indexOf(intent.slots.word_ten.value);
 			if(index >= 0){
 				// Delete from the expected list
-				expectedList.splice(index,1);
+				remainingList.splice(index,1);
+				utteredList.push(intent.slots.word_ten.value);
 			} else {
 				unExpectedList.push(intent.slots.word_ten.value);
 			}	
 		}
 		// Tell user what words he missed
-		if(expectedList.length > 0) {
-			speechText = speechText + " And you missed following words ";
-			for(var i=0; i<expectedList.length; i++) {
-				speechText = speechText + expectedList[i] + "<break time=\"1s\"/>";
-			}
-		}
+		//if(expectedList.length > 0) {
+			//speechText = speechText + " And you missed following words ";
+		//	for(var i=0; i<expectedList.length; i++) {
+		//		speechText = speechText + expectedList[i] + "<break time=\"1s\"/>";
+		//	}
+		//}
+		speechText = "Are you done saying the words?";
+		session.attributes.utteredList = utteredList;
+		session.attributes.remainingList = remainingList;
+		session.attributes.unExpectedList = unExpectedList;
 		session.attributes.stage = 2;		
         } else {
             //The user attempted to jump to the intent of another stage.
@@ -324,6 +357,9 @@ function handleUserInputForWordRecognition(intent, session, response) {
     response.askWithCard(speechOutput, repromptOutput, "Remember Me", speechText);
 }
 
+function handleUserYesNoResponse(intent, session, response){
+	
+}
 // Create the handler that responds to the Alexa Request.
 exports.handler = function (event, context) {
     // Create an instance of the Remember Me Skill.
